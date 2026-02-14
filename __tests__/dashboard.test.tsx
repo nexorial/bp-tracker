@@ -20,12 +20,12 @@ describe('Dashboard Layout', () => {
     expect(screen.getByTestId('bp-chart')).toBeInTheDocument()
   })
 
-  it('renders the input form section with placeholder', () => {
+  it('renders the input form section with BPInputForm component', () => {
     render(<Home />)
     const inputSection = screen.getByTestId('input-section')
     expect(inputSection).toBeInTheDocument()
     expect(inputSection).toHaveTextContent('Add Reading')
-    expect(inputSection).toHaveTextContent('Input Form Placeholder')
+    expect(screen.getByTestId('bp-input-form')).toBeInTheDocument()
   })
 
   it('renders the records list section with placeholder', () => {

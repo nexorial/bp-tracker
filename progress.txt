@@ -168,3 +168,29 @@ Started: 2026-02-14 12:12 PM
 - Placeholder divs with bg-gray-100 help visualize layout during development
 
 ---
+
+## 2026-02-14 6:15 PM - US-008: Create BP trend chart with Recharts
+- Created app/components/BPChart.tsx with Recharts LineChart component
+- Display three lines: systolic (red #dc2626), diastolic (blue #2563eb), heart rate (green #16a34a)
+- X-axis shows dates, Y-axis shows values with auto-scaling domain
+- Included Legend with formatted labels (Systolic, Diastolic, Heart Rate)
+- Tooltips show formatted values on hover with styled container
+- Empty state displays 'No data available' message with gray styling
+- Created comprehensive tests in __tests__/bpchart.test.tsx (16 tests):
+  - Rendering tests for chart, axes, grid, tooltip, legend
+  - Line color verification tests
+  - Empty state handling
+  - Data variation tests (single point, many points)
+- Mocked Recharts components in tests to avoid SVG rendering issues
+- Added ResizeObserver mock to jest.setup.js for Recharts compatibility
+- Updated dashboard test to check for BPChart component instead of placeholder
+- Integrated BPChart into page.tsx with sample data
+- Typecheck passes
+- All 105 tests pass
+
+**Learnings:**
+- Recharts requires ResizeObserver mock in Jest tests (jsdom doesn't have it)
+- Mock Recharts components at test level to avoid SVG/ResponsiveContainer issues
+- Use 'use client' directive for components using Recharts
+- ResponsiveContainer needs a parent with defined height, use h-64 class
+- Recharts formatter functions can transform display names for legend/tooltip

@@ -1,6 +1,8 @@
 'use client';
 
+import { useCallback } from 'react';
 import { BPChart, BPChartDataPoint } from './components/BPChart';
+import { BPInputForm } from './components/BPInputForm';
 
 // Sample data for demonstration - will be replaced with real data in future stories
 const sampleData: BPChartDataPoint[] = [
@@ -52,9 +54,7 @@ export default function Home() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Add Reading
             </h2>
-            <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
-              <span className="text-gray-400">Input Form Placeholder</span>
-            </div>
+            <BPInputForm />
           </section>
 
           {/* Records List Section - Full width */}

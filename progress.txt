@@ -52,3 +52,42 @@ Started: 2026-02-14 12:12 PM
 - SQLite PRAGMA commands can verify table structure in tests
 
 ---
+
+## 2026-02-14 12:39 PM - US-003: Build database client and CRUD operations
+- Created lib/db.ts with BetterSQLite3 client wrapper
+- Implemented createRecord() - inserts BP data and returns created record with ID
+- Implemented getRecords(limit?, offset?) - returns records ordered by recorded_at DESC with pagination
+- Implemented getRecordById(id) - returns single record or null if not found
+- Implemented deleteRecord(id) - removes record and returns success boolean
+- Added proper TypeScript types: BPRecord, CreateBPRecordInput, PaginationOptions
+- Created BPTrackerDatabase class with singleton pattern for app use
+- Added createBPTrackerDatabase() factory for testing
+- Created comprehensive tests for all CRUD operations (15 tests)
+- Typecheck passes
+- Build passes
+- All tests pass (23/23)
+
+**Learnings:**
+- Use `datetime('now', '-N minutes')` for timestamp manipulation in SQLite tests
+- SQLite CURRENT_TIMESTAMP stores as UTC; use `.getTime()` for comparisons
+- better-sqlite3 is synchronous, works well with Jest synchronous tests
+- (db as any).db pattern allows direct access to underlying db for test setup
+
+---
+
+## 2026-02-14 12:55 PM - US-004: Implement BP input parser for 120/80/72 format
+- Created lib/parser.ts with parseBPInput function
+- Supports '120/80/72' format with heart rate and '120/80' without
+- Validates ranges: systolic 60-250, diastolic 40-150, heart rate 40-200
+- Returns discriminated union: { success: true, data } or { success: false, errors }
+- Handles whitespace trimming from input values
+- Created 21 comprehensive tests covering valid inputs, invalid formats, range validation, and edge cases
+- Typecheck passes
+- Build passes
+- All tests pass (44/44)
+
+**Learnings:**
+- Use TypeScript discriminated unions with success flag for type-safe result handling
+- parseInt truncates decimals, which is acceptable for BP values
+
+---

@@ -26,6 +26,11 @@ export interface PaginationOptions {
   days?: number;
 }
 
+export interface DateRangeOptions {
+  from?: string;
+  to?: string;
+}
+
 export interface RecordsResult {
   records: BPRecord[];
   total: number;
@@ -114,6 +119,39 @@ export class BPTrackerDatabase {
     const query = this.db.prepare('DELETE FROM bp_records WHERE id = ?');
     const result = query.run(id);
     return result.changes > 0;
+  }
+
+  /**
+   * Get all records for export with optional date range filtering
+   */
+  getRecordsForExport(options: DateRangeOptions = {}): BPRecord[] {
+    const from = options.from;
+    const to = options.to;
+
+    let whereClause = '';
+    const params: string[] = [];
+
+    if (from) {
+      whereClause = "WHERE recorded_at >= ?";
+      params.push(from);
+    }
+
+    if (to) {
+      if (whereClause) {
+        whereClause += " AND recorded_at <= ?";
+      } else {
+        whereClause = "WHERE recorded_at <= ?";
+      }
+      params.push(to);
+    }
+
+    const query = this.db.prepare(
+      `SELECT * FROM bp_records 
+       ${whereClause}
+       ORDER BY recorded_at DESC`
+    );
+
+    return query.all(...params) as BPRecord[];
   }
 
   /**

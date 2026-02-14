@@ -35,6 +35,7 @@ export default function Home() {
     offset: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecords = useCallback(async (offset = 0, limit = 10) => {
@@ -75,7 +76,7 @@ export default function Home() {
       records: prev.records.filter(r => r.id !== id),
       total: prev.total - 1
     }));
-    
+
     // If we deleted the last record on this page and we're not on the first page,
     // go to the previous page
     if (recordsData.records.length === 1 && recordsData.offset > 0) {
@@ -85,6 +86,43 @@ export default function Home() {
       fetchRecords(recordsData.offset, recordsData.limit);
     }
   }, [fetchRecords, recordsData.offset, recordsData.limit, recordsData.records.length]);
+
+  const handleExport = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('/api/export');
+
+      if (!response.ok) {
+        throw new Error('Failed to export records');
+      }
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'bp-records.csv';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) {
+          filename = match[1];
+        }
+      }
+
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Export error:', err);
+      alert(err instanceof Error ? err.message : 'Failed to export records');
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
 
   const chartData = convertToChartData(recordsData.records);
 
@@ -102,6 +140,36 @@ export default function Home() {
                 Track your blood pressure readings over time
               </p>
             </div>
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              data-testid="export-button"
+            >
+              <svg
+                className={`h-5 w-5 ${isExporting ? 'animate-spin' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {isExporting ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
+                )}
+              </svg>
+              {isExporting ? 'Exporting...' : 'Export CSV'}
+            </button>
           </div>
         </div>
       </header>

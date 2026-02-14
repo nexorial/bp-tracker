@@ -115,3 +115,33 @@ Started: 2026-02-14 12:12 PM
 - Always validate body is an object before accessing properties (handle null/undefined)
 
 ---
+
+## 2026-02-14 4:07 PM - US-006: Create API endpoint for fetching BP records
+- Extended app/api/records/route.ts with GET handler
+- Support query params: limit (default 50), offset (default 0), days (filter last N days)
+- Updated lib/db.ts getRecords() to return {records, total} with days filtering support
+- Changed default limit from 100 to 50 for better performance
+- Added resetBPTrackerDatabase() for test isolation
+- Added RecordsResult interface for typed return values
+- Records ordered by recorded_at DESC (newest first)
+- Response includes records array and total count for pagination
+- Added comprehensive validation for query parameters (limit, offset, days)
+- Created 21 new API tests for GET endpoint:
+  - Basic retrieval (empty, ordering, structure)
+  - Pagination (limit, offset, defaults)
+  - Days filter (7 days, 3 days, combined with limit)
+  - Validation (invalid limit, offset, days values)
+- Updated db-client tests to work with new getRecords return type
+- Fixed API test mocking strategy using jest.mock at module level
+- Typecheck passes
+- Build passes
+- All 84 tests pass
+
+**Learnings:**
+- Use jest.mock at module level (top of file) to properly mock modules in Jest
+- Mocked functions need jest.clearAllMocks() in afterEach for isolation
+- better-sqlite3 supports datetime('now', '-N days') for date filtering
+- Return total count alongside records for frontend pagination UI
+- Default limit of 50 is reasonable for BP tracking app
+
+---

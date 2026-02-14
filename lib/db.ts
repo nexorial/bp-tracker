@@ -23,6 +23,12 @@ export interface CreateBPRecordInput {
 export interface PaginationOptions {
   limit?: number;
   offset?: number;
+  days?: number;
+}
+
+export interface RecordsResult {
+  records: BPRecord[];
+  total: number;
 }
 
 // Database client class
@@ -58,19 +64,38 @@ export class BPTrackerDatabase {
   }
 
   /**
-   * Get all records with optional pagination, ordered by recorded_at DESC
+   * Get all records with optional pagination and date filtering, ordered by recorded_at DESC
    */
-  getRecords(options: PaginationOptions = {}): BPRecord[] {
-    const limit = options.limit ?? 100;
+  getRecords(options: PaginationOptions = {}): RecordsResult {
+    const limit = options.limit ?? 50;
     const offset = options.offset ?? 0;
+    const days = options.days;
 
+    let whereClause = '';
+    const params: (number | string)[] = [];
+
+    if (days !== undefined && days > 0) {
+      whereClause = "WHERE recorded_at >= datetime('now', '-' || ? || ' days')";
+      params.push(days);
+    }
+
+    // Get total count
+    const countQuery = this.db.prepare(
+      `SELECT COUNT(*) as count FROM bp_records ${whereClause}`
+    );
+    const total = (countQuery.get(...params) as { count: number }).count;
+
+    // Get records
     const query = this.db.prepare(
       `SELECT * FROM bp_records 
+       ${whereClause}
        ORDER BY recorded_at DESC 
        LIMIT ? OFFSET ?`
     );
 
-    return query.all(limit, offset) as BPRecord[];
+    const records = query.all(...params, limit, offset) as BPRecord[];
+
+    return { records, total };
   }
 
   /**
@@ -112,4 +137,9 @@ export function getBPTrackerDatabase(): BPTrackerDatabase {
 // For testing - allows creating new instances
 export function createBPTrackerDatabase(dbPath: string): BPTrackerDatabase {
   return new BPTrackerDatabase(dbPath);
+}
+
+// For testing - resets the singleton instance
+export function resetBPTrackerDatabase(): void {
+  dbInstance = null;
 }

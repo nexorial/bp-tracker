@@ -93,8 +93,9 @@ describe('BPTrackerDatabase CRUD Operations', () => {
 
   describe('getRecords', () => {
     it('should return empty array when no records exist', () => {
-      const records = db.getRecords();
-      expect(records).toEqual([]);
+      const result = db.getRecords();
+      expect(result.records).toEqual([]);
+      expect(result.total).toBe(0);
     });
 
     it('should return all records ordered by recorded_at DESC', () => {
@@ -108,12 +109,13 @@ describe('BPTrackerDatabase CRUD Operations', () => {
       const record1Id = insert.run(120, 80, 72, '-1 minutes').lastInsertRowid;
       const record2Id = insert.run(120, 80, 72, 'localtime').lastInsertRowid;
 
-      const records = db.getRecords();
+      const result = db.getRecords();
 
-      expect(records).toHaveLength(3);
+      expect(result.records).toHaveLength(3);
+      expect(result.total).toBe(3);
       // Should be ordered by recorded_at DESC (newest first)
-      expect(records[0].id).toBe(Number(record2Id));
-      expect(records[1].id).toBe(Number(record1Id));
+      expect(result.records[0].id).toBe(Number(record2Id));
+      expect(result.records[1].id).toBe(Number(record1Id));
     });
 
     it('should respect limit parameter', () => {
@@ -121,9 +123,10 @@ describe('BPTrackerDatabase CRUD Operations', () => {
       db.createRecord({ systolic: 130, diastolic: 85, heartRate: 75 });
       db.createRecord({ systolic: 110, diastolic: 70, heartRate: 68 });
 
-      const records = db.getRecords({ limit: 2 });
+      const result = db.getRecords({ limit: 2 });
 
-      expect(records).toHaveLength(2);
+      expect(result.records).toHaveLength(2);
+      expect(result.total).toBe(3);
     });
 
     it('should respect offset parameter', () => {
@@ -138,22 +141,45 @@ describe('BPTrackerDatabase CRUD Operations', () => {
       const record2Id = insert.run(120, 80, 72, '-1 minutes').lastInsertRowid;
       insert.run(120, 80, 72, 'localtime');
 
-      const records = db.getRecords({ limit: 10, offset: 1 });
+      const result = db.getRecords({ limit: 10, offset: 1 });
 
-      expect(records).toHaveLength(3);
-      expect(records[0].id).toBe(Number(record2Id));
-      expect(records[1].id).toBe(Number(record1Id));
+      expect(result.records).toHaveLength(3);
+      expect(result.total).toBe(4);
+      expect(result.records[0].id).toBe(Number(record2Id));
+      expect(result.records[1].id).toBe(Number(record1Id));
     });
 
-    it('should default to 100 records when no limit specified', () => {
+    it('should default to 50 records when no limit specified', () => {
       // Create 5 records (less than default limit)
       for (let i = 0; i < 5; i++) {
         db.createRecord({ systolic: 120 + i, diastolic: 80, heartRate: 72 });
       }
 
-      const records = db.getRecords();
+      const result = db.getRecords();
 
-      expect(records).toHaveLength(5);
+      expect(result.records).toHaveLength(5);
+      expect(result.total).toBe(5);
+    });
+
+    it('should filter by days parameter', () => {
+      // Create records with different dates using raw SQL
+      const insert = (db as any).db.prepare(
+        `INSERT INTO bp_records (systolic, diastolic, heart_rate, recorded_at) 
+         VALUES (?, ?, ?, ?)`
+      );
+
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+
+      insert.run(120, 80, 72, now.toISOString());
+      insert.run(130, 85, 75, yesterday.toISOString());
+      insert.run(140, 90, 80, fiveDaysAgo.toISOString());
+
+      const result = db.getRecords({ days: 3 });
+
+      expect(result.total).toBe(2); // Today + yesterday
+      expect(result.records.length).toBe(2);
     });
   });
 

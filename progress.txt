@@ -194,3 +194,35 @@ Started: 2026-02-14 12:12 PM
 - Use 'use client' directive for components using Recharts
 - ResponsiveContainer needs a parent with defined height, use h-64 class
 - Recharts formatter functions can transform display names for legend/tooltip
+
+---
+
+## 2026-02-14 7:20 PM - US-009: Build BP input form component
+- Created BPInputForm component (app/components/BPInputForm.tsx)
+- Text input with placeholder '120/80/72' for BP readings
+- Optional notes textarea for additional context
+- Submit button with loading state (spinner animation + disabled fields)
+- Inline validation errors displayed below input
+- Client-side validation for format, ranges (systolic 60-250, diastolic 40-150, heart rate 40-200)
+- Supports both 120/80/72 and 120/80 formats
+- Calls POST /api/records on submit with proper error handling
+- Form clears after successful submission
+- onSuccess callback prop for parent component notifications
+- Comprehensive test suite with 21 tests (bpinputform.test.tsx):
+  - Rendering tests for all form elements
+  - Validation tests for format, ranges, edge cases
+  - Submission tests including API calls, loading states, success/error handling
+  - Network error handling
+- Integrated BPInputForm into dashboard page
+- Updated dashboard.test.tsx to check for BPInputForm component
+- Typecheck passes
+- Build passes
+- All 126 tests pass
+
+**Learnings:**
+- Use userEvent.click instead of fireEvent.click for async interactions
+- Client-side validation should match server validation for better UX
+- heartRateStr check needs to handle undefined vs null correctly (use truthy check)
+- Mock fetch with jest.fn() and clear mocks in beforeEach for test isolation
+
+---

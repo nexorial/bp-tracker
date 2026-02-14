@@ -226,3 +226,46 @@ Started: 2026-02-14 12:12 PM
 - Mock fetch with jest.fn() and clear mocks in beforeEach for test isolation
 
 ---
+
+## 2026-02-14 8:35 PM - US-010: Create BP records list component
+- Created BPRecordsList component (app/components/BPRecordsList.tsx)
+- Dual view design: desktop table view + mobile card view
+- Displays: formatted date/time, systolic/diastolic with category label, heart rate, notes
+- BP color-coding based on AHA guidelines:
+  - Normal (< 120/< 80): green
+  - Elevated (120-129/< 80): yellow
+  - High Stage 1 (130-139 or 80-89): orange
+  - High Stage 2 (>= 140 or >= 90): red
+  - Crisis (>= 180 or >= 120): dark red
+- Delete button with inline confirmation dialog (Confirm/Cancel)
+- Loading state with row dimming during delete operation
+- Pagination with previous/next buttons and page info
+- Empty state with icon and helpful message when no records
+- Records displayed in API order (already sorted newest first by backend)
+- Created DELETE API endpoint at /api/records/[id]/route.ts
+- Integrated BPRecordsList into main dashboard page
+- Dashboard fetches records on mount and provides refresh functionality
+- Auto-refreshes after successful form submission
+- Updates page count after deletion
+- Comprehensive test suite with 50+ tests (bprecordslist.test.tsx):
+  - Rendering tests for desktop and mobile views
+  - BP color coding tests for all categories
+  - Delete functionality with confirmation, cancel, API call
+  - Loading states and error handling
+  - Pagination with page changes and disabled states
+  - Empty state verification
+- Added DELETE API tests (9 tests) covering success, validation, not found, errors
+- Updated dashboard tests for new integration (8 tests updated)
+- Typecheck passes
+- Build passes
+- All 176 tests pass
+
+**Learnings:**
+- AHA BP guidelines: Normal < 120/< 80, Elevated 120-129/< 80, Stage 1 130-139 or 80-89, Stage 2 >= 140 or >= 90
+- Color coding helps users quickly identify concerning readings
+- Inline confirmation dialogs are better UX than modals for simple actions
+- useCallback is important for preventing unnecessary re-renders with pagination
+- Need to validate decimal IDs separately since parseInt truncates
+- When deleting last item on page, need to handle page navigation
+
+---

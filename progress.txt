@@ -296,3 +296,60 @@ Started: 2026-02-14 12:12 PM
 - Reusing classifyBP and getBPCategoryStyles from BPRecordsList maintains consistency
 
 ---
+
+## 2026-02-14 11:46 PM - US-013: Add data export functionality
+- Created app/api/export/route.ts with GET handler for CSV export
+- CSV headers: Date, Systolic, Diastolic, Heart Rate, Notes
+- Implemented CSV escaping for commas, quotes, and newlines in fields
+- Added date range filtering via ?from=YYYY-MM-DD and ?to=YYYY-MM-DD query params
+- Set proper Content-Type (text/csv) and Content-Disposition headers
+- Filename format: bp-records-YYYY-MM-DD.csv with current date
+- Added getRecordsForExport() method to BPTrackerDatabase class
+- Added DateRangeOptions interface for date filtering
+- Added export button to dashboard header with loading spinner state
+- Export button triggers file download using blob URL
+- Created comprehensive test suite with 18 tests (api-export.test.ts):
+  - Basic export with correct headers and CSV format
+  - Date range filtering (from, to, both)
+  - CSV escaping for special characters (commas, quotes, newlines)
+  - Filename generation with current date
+  - Validation of date format parameters
+  - Error handling for database failures
+  - Record ordering (newest first)
+  - Edge cases (null notes, empty result set)
+- Typecheck passes
+- Build passes
+- All 237 tests pass
+
+**Learnings:**
+- Use Response object directly (not NextResponse) when returning non-JSON content
+- URL.createObjectURL() with anchor tag is reliable for triggering downloads
+- CSV escaping: wrap fields in quotes and double any internal quotes
+- Better to validate date format with regex before creating Date object
+- FROM JIT pattern for database queries (dynamic WHERE clause building)
+
+---
+
+## 2026-02-15 12:49 AM - US-014: Write comprehensive README documentation
+- Created comprehensive README.md with:
+  - Project description and features list
+  - Tech stack documentation (Next.js, SQLite, Tailwind, Recharts)
+  - Prerequisites and step-by-step setup instructions
+  - Database setup instructions (npm run db:init)
+  - Detailed usage guide: adding readings, interpreting charts, AHA color codes
+  - Statistics panel explanation
+  - Data export instructions with date filtering
+  - Available scripts reference table
+  - Project structure diagram
+  - Database schema documentation
+  - Screenshots section with placeholders
+- Typecheck passes
+- All 237 tests pass
+- Commit: 6647cdc
+
+**Learnings:**
+- README should include both quick start and detailed usage sections
+- Screenshots section with placeholders helps future documentation efforts
+- AHA guidelines table makes the color coding system clear to users
+
+---

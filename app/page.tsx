@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BPChart, BPChartDataPoint } from './components/BPChart';
 import { BPInputForm } from './components/BPInputForm';
 import { BPRecordsList, BPRecord } from './components/BPRecordsList';
+import { BPStats } from './components/BPStats';
 
 interface RecordsResponse {
   records: BPRecord[];
@@ -134,6 +135,14 @@ export default function Home() {
               Add Reading
             </h2>
             <BPInputForm onSuccess={handleRefresh} />
+          </section>
+
+          {/* Statistics Section */}
+          <section
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            data-testid="stats-section"
+          >
+            <BPStats records={recordsData.records} />
           </section>
 
           {/* Records List Section - Full width */}

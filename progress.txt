@@ -269,3 +269,30 @@ Started: 2026-02-14 12:12 PM
 - When deleting last item on page, need to handle page navigation
 
 ---
+
+
+## 2026-02-14 9:35 PM - US-011: Build statistics summary component
+- Created BPStats component (app/components/BPStats.tsx)
+- Displays average systolic, diastolic, and heart rate in a 3-column grid
+- Shows total reading count and date range (first to last record)
+- Latest reading displayed with color-coded status using AHA guidelines
+- Trend indicator compares recent vs older averages (improving/stable/worsening)
+- Empty state with helpful message when no records available
+- Comprehensive test suite with 26 tests (bpstats.test.tsx):
+  - Empty state verification
+  - Average calculations for all three metrics
+  - Reading count and date range display
+  - Latest reading display with color coding
+  - All BP category colors (normal, elevated, high1, high2, crisis)
+  - Trend indicator tests (improving, worsening, stable)
+  - Edge cases (zero heart rate, records with notes)
+- Typecheck passes
+- All 202 tests pass
+
+**Learnings:**
+- useMemo is effective for statistics calculations that depend on records array
+- Trend calculation needs at least 6 records to be meaningful; show stable for fewer
+- Rounding averages with Math.round() is appropriate for BP values
+- Reusing classifyBP and getBPCategoryStyles from BPRecordsList maintains consistency
+
+---

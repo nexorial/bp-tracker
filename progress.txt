@@ -1,0 +1,54 @@
+# Progress Log
+Run: b109a6aa-60f4-4b23-ab32-381ddac52867
+Task: 开发血压记录工具 BP Tracker
+Started: 2026-02-14 12:12 PM
+
+## Codebase Patterns
+- This project uses Next.js 15 with App Router
+- Tailwind CSS for styling
+- Jest + React Testing Library for testing
+- SQLite (better-sqlite3) for database
+- TypeScript with strict mode enabled
+- Tests are excluded from typecheck via tsconfig.json
+- Database files (.db) are gitignored
+
+---
+
+## 2026-02-14 12:30 PM - US-001: Initialize Next.js project with TypeScript and Tailwind
+- Set up Next.js project with TypeScript and Tailwind CSS
+- Installed dependencies: recharts, better-sqlite3, @types/better-sqlite3
+- Configured Jest with React Testing Library for testing
+- Created smoke tests to verify project setup
+- Updated page.tsx with Tailwind test element
+- Typecheck passes
+- Tests pass (3/3)
+
+**Learnings:**
+- Need to exclude __tests__ directory from tsconfig.json for typecheck
+- jest-environment-jsdom is required separately as of Jest 28
+- Project structure follows Next.js 15 App Router conventions
+
+---
+
+## 2026-02-14 12:23 PM - US-002: Create SQLite database schema for BP records
+- Created db/ directory for database files
+- Created db/schema.sql with bp_records table:
+  - id (INTEGER PRIMARY KEY AUTOINCREMENT)
+  - systolic (INTEGER NOT NULL)
+  - diastolic (INTEGER NOT NULL)
+  - heart_rate (INTEGER NOT NULL)
+  - recorded_at (DATETIME DEFAULT CURRENT_TIMESTAMP)
+  - notes (TEXT optional)
+- Created db/init.ts database initialization script
+- Added index on recorded_at for faster queries
+- Created comprehensive tests for database schema
+- Installed @types/better-sqlite3 for type checking
+- Typecheck passes
+- Tests pass (8/8 total, 5 new)
+
+**Learnings:**
+- better-sqlite3 is synchronous, which works well with Jest tests
+- Need @types/better-sqlite3 for TypeScript support
+- SQLite PRAGMA commands can verify table structure in tests
+
+---

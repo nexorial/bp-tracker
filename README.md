@@ -2,7 +2,8 @@
 
 A modern blood pressure tracking application built with Next.js, featuring an intuitive dashboard with trend visualization and data export capabilities.
 
-![BP Tracker Dashboard](./docs/screenshots/dashboard.png)
+<!-- Screenshot placeholder - add dashboard.png to docs/screenshots/ -->
+<!-- ![BP Tracker Dashboard](./docs/screenshots/dashboard.png) -->
 
 ## Features
 
@@ -167,24 +168,26 @@ CREATE TABLE bp_records (
 
 ## Screenshots
 
+*Screenshots should be added to `docs/screenshots/` directory. See [docs/screenshots/README.md](./docs/screenshots/README.md) for instructions.*
+
 ### Dashboard Overview
-![Dashboard Overview](./docs/screenshots/dashboard-overview.png)
+<!-- ![Dashboard Overview](./docs/screenshots/dashboard-overview.png) -->
 *Main dashboard showing charts, input form, and statistics*
 
 ### Adding a Reading
-![Adding Reading](./docs/screenshots/add-reading.png)
+<!-- ![Adding Reading](./docs/screenshots/add-reading.png) -->
 *Input form with validation and optional notes*
 
 ### Records List
-![Records List](./docs/screenshots/records-list.png)
+<!-- ![Records List](./docs/screenshots/records-list.png) -->
 *Paginated list with color-coded readings and delete functionality*
 
 ### Statistics Panel
-![Statistics](./docs/screenshots/statistics.png)
+<!-- ![Statistics](./docs/screenshots/statistics.png) -->
 *Comprehensive statistics including averages and trends*
 
 ### Data Export
-![Export](./docs/screenshots/export.png)
+<!-- ![Export](./docs/screenshots/export.png) -->
 *CSV export feature for sharing data with healthcare providers*
 
 ## Development

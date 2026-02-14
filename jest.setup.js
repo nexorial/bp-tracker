@@ -42,3 +42,13 @@ class MockResponse {
 
 global.Request = MockRequest;
 global.Response = MockResponse;
+
+// ResizeObserver mock for Recharts compatibility
+global.ResizeObserver = class ResizeObserver {
+  constructor(callback) {
+    this.callback = callback;
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};

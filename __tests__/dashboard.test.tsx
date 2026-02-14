@@ -12,12 +12,12 @@ describe('Dashboard Layout', () => {
     expect(screen.getByTestId('app-description')).toHaveTextContent('Track your blood pressure readings over time')
   })
 
-  it('renders the chart section with placeholder', () => {
+  it('renders the chart section with BPChart component', () => {
     render(<Home />)
     const chartSection = screen.getByTestId('chart-section')
     expect(chartSection).toBeInTheDocument()
     expect(chartSection).toHaveTextContent('Blood Pressure Trends')
-    expect(chartSection).toHaveTextContent('Chart Placeholder')
+    expect(screen.getByTestId('bp-chart')).toBeInTheDocument()
   })
 
   it('renders the input form section with placeholder', () => {

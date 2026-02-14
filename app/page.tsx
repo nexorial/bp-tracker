@@ -1,3 +1,16 @@
+'use client';
+
+import { BPChart, BPChartDataPoint } from './components/BPChart';
+
+// Sample data for demonstration - will be replaced with real data in future stories
+const sampleData: BPChartDataPoint[] = [
+  { date: '2024-01-01', systolic: 120, diastolic: 80, heartRate: 72 },
+  { date: '2024-01-02', systolic: 125, diastolic: 82, heartRate: 75 },
+  { date: '2024-01-03', systolic: 118, diastolic: 78, heartRate: 70 },
+  { date: '2024-01-04', systolic: 122, diastolic: 79, heartRate: 73 },
+  { date: '2024-01-05', systolic: 119, diastolic: 77, heartRate: 71 },
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
@@ -21,16 +34,14 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chart Section - Full width on mobile, spans 2 columns on large screens */}
-          <section 
+          <section
             className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
             data-testid="chart-section"
           >
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Blood Pressure Trends
             </h2>
-            <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-              <span className="text-gray-400">Chart Placeholder</span>
-            </div>
+            <BPChart data={sampleData} />
           </section>
 
           {/* Input Form Section */}

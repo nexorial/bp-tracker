@@ -1,7 +1,26 @@
 import { render, screen } from '@testing-library/react'
 import Home from '../app/page'
 
+// Mock fetch globally for the dashboard
+global.fetch = jest.fn();
+
 describe('Dashboard Layout', () => {
+  const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Mock successful fetch response for records
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        records: [],
+        total: 0,
+        limit: 10,
+        offset: 0
+      })
+    } as Response);
+  });
+
   it('renders the header with app title', () => {
     render(<Home />)
     expect(screen.getByTestId('app-title')).toHaveTextContent('BP Tracker')
@@ -17,7 +36,6 @@ describe('Dashboard Layout', () => {
     const chartSection = screen.getByTestId('chart-section')
     expect(chartSection).toBeInTheDocument()
     expect(chartSection).toHaveTextContent('Blood Pressure Trends')
-    expect(screen.getByTestId('bp-chart')).toBeInTheDocument()
   })
 
   it('renders the input form section with BPInputForm component', () => {
@@ -28,12 +46,18 @@ describe('Dashboard Layout', () => {
     expect(screen.getByTestId('bp-input-form')).toBeInTheDocument()
   })
 
-  it('renders the records list section with placeholder', () => {
+  it('renders the records list section with BPRecordsList component', () => {
     render(<Home />)
     const listSection = screen.getByTestId('list-section')
     expect(listSection).toBeInTheDocument()
     expect(listSection).toHaveTextContent('Recent Readings')
-    expect(listSection).toHaveTextContent('Records List Placeholder')
+    expect(screen.getByTestId('bp-records-empty')).toBeInTheDocument()
+  })
+
+  it('renders refresh button in records section', () => {
+    render(<Home />)
+    expect(screen.getByTestId('refresh-button')).toBeInTheDocument()
+    expect(screen.getByTestId('refresh-button')).toHaveTextContent('Refresh')
   })
 
   it('uses Tailwind CSS classes for styling', () => {

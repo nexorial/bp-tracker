@@ -145,3 +145,26 @@ Started: 2026-02-14 12:12 PM
 - Default limit of 50 is reasonable for BP tracking app
 
 ---
+
+## 2026-02-14 5:17 PM - US-007: Build main dashboard layout with Tailwind
+- Updated app/page.tsx with responsive dashboard layout
+- Created header with app title 'BP Tracker' and description
+- Implemented mobile-first responsive grid layout:
+  - Chart section: full width on mobile, 2/3 on large screens
+  - Input section: full width on mobile, 1/3 on large screens
+  - Records list: full width on all screens
+- Used Tailwind CSS for all styling (colors, spacing, typography, shadows)
+- Created __tests__/dashboard.test.tsx with 8 tests covering layout rendering and Tailwind classes
+- Updated smoke.test.tsx to work with new dashboard layout
+- All sections have placeholder content ready for next stories
+- Typecheck passes
+- Build passes
+- All 92 tests pass
+
+**Learnings:**
+- Use Tailwind's responsive prefixes (sm:, lg:) for mobile-first design
+- max-w-7xl with mx-auto creates a centered content container
+- Use data-testid for testing specific elements without relying on text content
+- Placeholder divs with bg-gray-100 help visualize layout during development
+
+---

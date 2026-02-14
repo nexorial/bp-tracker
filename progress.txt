@@ -91,3 +91,27 @@ Started: 2026-02-14 12:12 PM
 - parseInt truncates decimals, which is acceptable for BP values
 
 ---
+
+## 2026-02-14 1:58 PM - US-005: Create API endpoint for adding BP records
+- Created app/api/records/route.ts with POST handler
+- Accepts both string format ({ input: '120/80/72' }) and object format ({ systolic, diastolic, heartRate })
+- Validates data using parser ranges for both formats
+- Stores in database using db.createRecord
+- Returns 201 with created record including ID and timestamp
+- Returns 400 with descriptive error messages for invalid data
+- Created 19 comprehensive API tests covering:
+  - String format input (with/without heart rate, with notes)
+  - Object format input (valid, with notes, missing fields)
+  - Validation errors (out of range values, invalid format)
+  - Edge cases (boundary values, empty body, null body, auto-incrementing IDs, timestamps)
+- Updated jest.setup.js to add Request/Response mocks for API testing
+- Typecheck passes
+- Build passes
+- All tests pass (63/63)
+
+**Learnings:**
+- Next.js App Router API routes need Request/Response globals in Jest (jsdom doesn't have them)
+- Mock Response needs static json() method for NextResponse.json() to work
+- Always validate body is an object before accessing properties (handle null/undefined)
+
+---

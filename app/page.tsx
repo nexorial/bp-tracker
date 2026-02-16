@@ -70,19 +70,15 @@ export default function Home() {
   }, [fetchRecords, recordsData.limit]);
 
   const handleDelete = useCallback((id: number) => {
-    // Remove the deleted record from the list
     setRecordsData(prev => ({
       ...prev,
       records: prev.records.filter(r => r.id !== id),
       total: prev.total - 1
     }));
 
-    // If we deleted the last record on this page and we're not on the first page,
-    // go to the previous page
     if (recordsData.records.length === 1 && recordsData.offset > 0) {
       fetchRecords(recordsData.offset - recordsData.limit, recordsData.limit);
     } else {
-      // Otherwise just refresh to fill the gap
       fetchRecords(recordsData.offset, recordsData.limit);
     }
   }, [fetchRecords, recordsData.offset, recordsData.limit, recordsData.records.length]);
@@ -96,7 +92,6 @@ export default function Home() {
         throw new Error('Failed to export records');
       }
 
-      // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
       let filename = 'bp-records.csv';
       if (contentDisposition) {
@@ -106,7 +101,6 @@ export default function Home() {
         }
       }
 
-      // Download the file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -127,23 +121,30 @@ export default function Home() {
   const chartData = convertToChartData(recordsData.records);
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main className="min-h-screen bg-slate-50">
+      {/* Modern Header */}
+      <header className="gradient-header text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900" data-testid="app-title">
-                BP Tracker
-              </h1>
-              <p className="mt-1 text-gray-600" data-testid="app-description">
-                Track your blood pressure readings over time
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <svg className="w-6 h-6 text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" data-testid="app-title">
+                  BP Tracker
+                </h1>
+              </div>
+              <p className="text-slate-300 text-sm sm:text-base" data-testid="app-description">
+                Monitor your blood pressure trends with visual insights
               </p>
             </div>
             <button
               onClick={handleExport}
               disabled={isExporting}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="btn-secondary bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 backdrop-blur-sm disabled:opacity-50"
               data-testid="export-button"
             >
               <svg
@@ -153,19 +154,9 @@ export default function Home() {
                 stroke="currentColor"
               >
                 {isExporting ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 )}
               </svg>
               {isExporting ? 'Exporting...' : 'Export CSV'}
@@ -177,55 +168,68 @@ export default function Home() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart Section - Full width on mobile, spans 2 columns on large screens */}
+          {/* Chart Section */}
           <section
-            className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            className="lg:col-span-2 section-card"
             data-testid="chart-section"
           >
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Blood Pressure Trends
-            </h2>
-            {error ? (
-              <div className="h-64 flex items-center justify-center text-red-600">
-                Failed to load chart data
-              </div>
-            ) : (
-              <BPChart data={chartData} />
-            )}
+            <div className="px-6 py-5 border-b border-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">Blood Pressure Trends</h2>
+              <p className="text-sm text-slate-500 mt-1">Visualize your readings over time</p>
+            </div>
+            <div className="p-6">
+              {error ? (
+                <div className="h-64 flex items-center justify-center text-danger-600 bg-danger-50 rounded-xl">
+                  Failed to load chart data
+                </div>
+              ) : (
+                <BPChart data={chartData} />
+              )}
+            </div>
           </section>
 
           {/* Input Form Section */}
           <section 
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            className="section-card"
             data-testid="input-section"
           >
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Add Reading
-            </h2>
-            <BPInputForm onSuccess={handleRefresh} />
+            <div className="px-6 py-5 border-b border-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">Add Reading</h2>
+              <p className="text-sm text-slate-500 mt-1">Enter your measurements</p>
+            </div>
+            <div className="p-6">
+              <BPInputForm onSuccess={handleRefresh} />
+            </div>
           </section>
 
           {/* Statistics Section */}
           <section
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            className="section-card"
             data-testid="stats-section"
           >
-            <BPStats records={recordsData.records} />
+            <div className="px-6 py-5 border-b border-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">Statistics</h2>
+              <p className="text-sm text-slate-500 mt-1">Overview of your health metrics</p>
+            </div>
+            <div className="p-6">
+              <BPStats records={recordsData.records} />
+            </div>
           </section>
 
-          {/* Records List Section - Full width */}
+          {/* Records List Section */}
           <section 
-            className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+            className="lg:col-span-3 section-card"
             data-testid="list-section"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recent Readings
-              </h2>
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Recent Readings</h2>
+                <p className="text-sm text-slate-500 mt-1">Your blood pressure history</p>
+              </div>
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 flex items-center gap-1"
+                className="btn-secondary text-sm py-2 px-4"
                 data-testid="refresh-button"
               >
                 <svg 
@@ -234,32 +238,28 @@ export default function Home() {
                   viewBox="0 0 24 24" 
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 Refresh
               </button>
             </div>
-            
-            {error ? (
-              <div className="text-center py-8 text-red-600" data-testid="records-error">
-                {error}
-              </div>
-            ) : (
-              <BPRecordsList
-                records={recordsData.records}
-                total={recordsData.total}
-                limit={recordsData.limit}
-                offset={recordsData.offset}
-                onDelete={handleDelete}
-                onPageChange={handlePageChange}
-                isLoading={isLoading}
-              />
-            )}
+            <div className="p-6">
+              {error ? (
+                <div className="text-center py-8 text-danger-600 bg-danger-50 rounded-xl" data-testid="records-error">
+                  {error}
+                </div>
+              ) : (
+                <BPRecordsList
+                  records={recordsData.records}
+                  total={recordsData.total}
+                  limit={recordsData.limit}
+                  offset={recordsData.offset}
+                  onDelete={handleDelete}
+                  onPageChange={handlePageChange}
+                  isLoading={isLoading}
+                />
+              )}
+            </div>
           </section>
         </div>
       </div>

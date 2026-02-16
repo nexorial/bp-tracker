@@ -27,7 +27,7 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
     const parts = trimmed.split('/');
     
     if (parts.length < 2 || parts.length > 3) {
-      return 'Invalid format. Expected: systolic/diastolic or systolic/diastolic/heartRate (e.g., 120/80/72)';
+      return 'Invalid format. Use: systolic/diastolic/heartRate (e.g., 120/80/72)';
     }
     
     const systolic = parseInt(parts[0].trim(), 10);
@@ -53,10 +53,8 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clear previous errors
     setErrors({});
     
-    // Validate input
     const inputError = validateInput(input);
     if (inputError) {
       setErrors({ input: inputError });
@@ -88,12 +86,9 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
         return;
       }
       
-      // Clear form on success
       setInput('');
       setNotes('');
       setErrors({});
-      
-      // Call onSuccess callback if provided
       onSuccess?.();
     } catch (error) {
       setErrors({ general: 'Network error. Please try again.' });
@@ -109,116 +104,110 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
     }
   }, [errors.input]);
 
-  const handleNotesChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNotes(e.target.value);
-  }, []);
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-testid="bp-input-form">
+    <form onSubmit={handleSubmit} className="space-y-5" data-testid="bp-input-form">
       <div>
         <label 
           htmlFor="bp-reading" 
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-semibold text-slate-700 mb-2"
         >
           Blood Pressure Reading
         </label>
-        <input
-          id="bp-reading"
-          type="text"
-          value={input}
-          onChange={handleInputChange}
-          placeholder="120/80/72"
-          disabled={isLoading}
-          className={`
-            w-full px-3 py-2 border rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${errors.input ? 'border-red-500' : 'border-gray-300'}
-          `}
-          data-testid="bp-input-field"
-        />
+        <div className="relative">
+          <input
+            id="bp-reading"
+            type="text"
+            value={input}
+            onChange={handleInputChange}
+            placeholder="120/80/72"
+            disabled={isLoading}
+            className={`
+              input-modern pr-12
+              ${errors.input ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500/20' : ''}
+            `}
+            data-testid="bp-input-field"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+        </div>        
         {errors.input && (
-          <p className="mt-1 text-sm text-red-600" data-testid="bp-input-error">
+          <p className="mt-2 text-sm text-danger-600 flex items-center gap-1" data-testid="bp-input-error">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             {errors.input}
           </p>
         )}
-        <p className="mt-1 text-xs text-gray-500">
-          Format: systolic/diastolic/heartRate (e.g., 120/80/72)
-        </p>
+        <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Format: systolic/diastolic/heartRate
+        </div>
       </div>
 
       <div>
         <label 
           htmlFor="bp-notes" 
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-semibold text-slate-700 mb-2"
         >
-          Notes (optional)
+          Notes
+          <span className="text-slate-400 font-normal ml-1">(optional)</span>
         </label>
         <textarea
           id="bp-notes"
           value={notes}
-          onChange={handleNotesChange}
-          placeholder="Add any notes about this reading..."
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="e.g., Morning reading, after coffee..."
           rows={3}
           disabled={isLoading}
-          className="
-            w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            resize-vertical
-          "
+          className="input-modern resize-none"
           data-testid="bp-notes-field"
         />
       </div>
 
       {errors.general && (
         <div 
-          className="p-3 bg-red-50 border border-red-200 rounded-md"
+          className="p-4 bg-danger-50 border border-danger-200 rounded-xl flex items-center gap-2"
           data-testid="bp-general-error"
         >
-          <p className="text-sm text-red-600">{errors.general}</p>
+          <svg className="h-5 w-5 text-danger-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-danger-700">{errors.general}</p>
         </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="
-          w-full flex items-center justify-center px-4 py-2
-          bg-blue-600 text-white font-medium rounded-md
-          hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-          disabled:bg-blue-400 disabled:cursor-not-allowed
-          transition-colors duration-200
-        "
+        className="btn-primary w-full"
         data-testid="bp-submit-button"
       >
         {isLoading ? (
           <>
             <svg 
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
+              className="animate-spin h-5 w-5"
               xmlns="http://www.w3.org/2000/svg" 
               fill="none" 
               viewBox="0 0 24 24"
               data-testid="bp-loading-spinner"
             >
-              <circle 
-                className="opacity-25" 
-                cx="12" 
-                cy="12" 
-                r="10" 
-                stroke="currentColor" 
-                strokeWidth="4"
-              />
-              <path 
-                className="opacity-75" 
-                fill="currentColor" 
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             Saving...
           </>
         ) : (
-          'Add Reading'
+          <>
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Reading
+          </>
         )}
       </button>
     </form>

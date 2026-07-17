@@ -5,6 +5,7 @@ import { BPChart, BPChartDataPoint } from './components/BPChart';
 import { BPInputForm } from './components/BPInputForm';
 import { BPRecordsList, BPRecord } from './components/BPRecordsList';
 import { BPStats } from './components/BPStats';
+import { CurrentReadingCard } from './components/CurrentReadingCard';
 
 interface RecordsResponse {
   records: BPRecord[];
@@ -25,6 +26,36 @@ function convertToChartData(records: BPRecord[]): BPChartDataPoint[] {
       diastolic: record.diastolic,
       heartRate: record.heart_rate
     }));
+}
+
+// Heart icon SVG component
+function HeartIcon({ className = 'w-6 h-6' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+}
+
+// Download icon SVG component
+function DownloadIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+  );
+}
+
+// Refresh icon SVG component
+function RefreshIcon({ className = 'w-5 h-5', spinning = false }: { className?: string; spinning?: boolean }) {
+  return (
+    <svg className={`${className} ${spinning ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+  );
 }
 
 export default function Home() {
@@ -70,19 +101,15 @@ export default function Home() {
   }, [fetchRecords, recordsData.limit]);
 
   const handleDelete = useCallback((id: number) => {
-    // Remove the deleted record from the list
     setRecordsData(prev => ({
       ...prev,
       records: prev.records.filter(r => r.id !== id),
       total: prev.total - 1
     }));
 
-    // If we deleted the last record on this page and we're not on the first page,
-    // go to the previous page
     if (recordsData.records.length === 1 && recordsData.offset > 0) {
       fetchRecords(recordsData.offset - recordsData.limit, recordsData.limit);
     } else {
-      // Otherwise just refresh to fill the gap
       fetchRecords(recordsData.offset, recordsData.limit);
     }
   }, [fetchRecords, recordsData.offset, recordsData.limit, recordsData.records.length]);
@@ -96,7 +123,6 @@ export default function Home() {
         throw new Error('Failed to export records');
       }
 
-      // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
       let filename = 'bp-records.csv';
       if (contentDisposition) {
@@ -106,7 +132,6 @@ export default function Home() {
         }
       }
 
-      // Download the file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -125,129 +150,160 @@ export default function Home() {
   }, []);
 
   const chartData = convertToChartData(recordsData.records);
+  const latestRecord = recordsData.records[0] || null;
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-bg-primary">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900" data-testid="app-title">
-                BP Tracker
-              </h1>
-              <p className="mt-1 text-gray-600" data-testid="app-description">
-                Track your blood pressure readings over time
-              </p>
+      <header className="sticky top-0 z-50 bg-bg-secondary/80 backdrop-blur-md border-b border-border-subtle">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo / Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-health-high-2 to-accent-danger flex items-center justify-center shadow-lg">
+                <HeartIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-text-primary tracking-tight">
+                  BP Tracker
+                </h1>
+                <p className="text-xs text-text-tertiary">
+                  Blood Pressure Monitor
+                </p>
+              </div>
             </div>
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              data-testid="export-button"
-            >
-              <svg
-                className={`h-5 w-5 ${isExporting ? 'animate-spin' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="btn btn-ghost p-2"
+                title="Refresh data"
+              >
+                <RefreshIcon className="w-5 h-5" spinning={isLoading} />
+              </button>
+              
+              <button
+                onClick={handleExport}
+                disabled={isExporting || recordsData.total === 0}
+                className="btn btn-primary text-sm"
               >
                 {isExporting ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
+                  <>
+                    <RefreshIcon className="w-4 h-4" spinning />
+                    Exporting...
+                  </>
                 ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  />
+                  <>
+                    <DownloadIcon className="w-4 h-4" />
+                    Export CSV
+                  </>
                 )}
-              </svg>
-              {isExporting ? 'Exporting...' : 'Export CSV'}
-            </button>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart Section - Full width on mobile, spans 2 columns on large screens */}
-          <section
-            className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-            data-testid="chart-section"
-          >
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Blood Pressure Trends
-            </h2>
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section - Current Reading */}
+        {latestRecord && (
+          <section className="mb-8 animate-fade-in">
+            <CurrentReadingCard record={latestRecord} />
+          </section>
+        )}
+
+        {/* Statistics and Add Reading - Same Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Statistics Section */}
+          <section>
+            <div className="card h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-h3 text-text-primary">Statistics</h2>
+                  <p className="text-sm text-text-secondary mt-1">
+                    Your blood pressure statistics and trends
+                  </p>
+                </div>
+              </div>
+              <BPStats records={recordsData.records} />
+            </div>
+          </section>
+
+          {/* Add Reading Section */}
+          <section>
+            <div className="card h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-h3 text-text-primary">Add Reading</h2>
+                  <p className="text-sm text-text-secondary mt-1">
+                    Log a new blood pressure measurement
+                  </p>
+                </div>
+              </div>
+              <BPInputForm onSuccess={handleRefresh} />
+            </div>
+          </section>
+        </div>
+
+        {/* Blood Pressure Trends Section - Full Width */}
+        <section className="mb-6">
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-h3 text-text-primary">Blood Pressure Trends</h2>
+                <p className="text-sm text-text-secondary mt-1">
+                  Track your readings over time
+                </p>
+              </div>
+            </div>
+            
             {error ? (
-              <div className="h-64 flex items-center justify-center text-red-600">
-                Failed to load chart data
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-12 h-12 rounded-full bg-health-crisis/10 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-health-crisis" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-health-crisis font-medium">Failed to load chart data</p>
+                  <button 
+                    onClick={handleRefresh}
+                    className="text-accent-primary text-sm mt-2 hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
               </div>
             ) : (
               <BPChart data={chartData} />
             )}
-          </section>
+          </div>
+        </section>
 
-          {/* Input Form Section */}
-          <section 
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-            data-testid="input-section"
-          >
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Add Reading
-            </h2>
-            <BPInputForm onSuccess={handleRefresh} />
-          </section>
-
-          {/* Statistics Section */}
-          <section
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-            data-testid="stats-section"
-          >
-            <BPStats records={recordsData.records} />
-          </section>
-
-          {/* Records List Section - Full width */}
-          <section 
-            className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 p-6"
-            data-testid="list-section"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Recent Readings
-              </h2>
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading}
-                className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 flex items-center gap-1"
-                data-testid="refresh-button"
-              >
-                <svg 
-                  className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                  />
-                </svg>
-                Refresh
-              </button>
+        {/* Recent Readings - Full width */}
+        <section className="mb-6">
+          <div className="card">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-h3 text-text-primary">Recent Readings</h2>
+                <p className="text-sm text-text-secondary mt-1">
+                  Your latest blood pressure measurements
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-caption text-text-tertiary">
+                  {recordsData.total} total records
+                </span>
+              </div>
             </div>
             
             {error ? (
-              <div className="text-center py-8 text-red-600" data-testid="records-error">
-                {error}
+              <div className="text-center py-12">
+                <p className="text-health-crisis">{error}</p>
               </div>
             ) : (
               <BPRecordsList
@@ -260,8 +316,35 @@ export default function Home() {
                 isLoading={isLoading}
               />
             )}
-          </section>
-        </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-12 pt-8 border-t border-border-subtle">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-caption text-text-tertiary">
+              BP Tracker Dashboard • Built with care for your health
+            </p>
+            <div className="flex items-center gap-4 text-caption text-text-tertiary">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-health-normal"></span>
+                Normal
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-health-elevated"></span>
+                Elevated
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-health-high-1"></span>
+                High 1
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-health-high-2"></span>
+                High 2
+              </span>
+            </div>
+          </div>
+        </footer>
       </div>
     </main>
   );

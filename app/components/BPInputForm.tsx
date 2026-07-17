@@ -53,10 +53,8 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clear previous errors
     setErrors({});
     
-    // Validate input
     const inputError = validateInput(input);
     if (inputError) {
       setErrors({ input: inputError });
@@ -88,12 +86,10 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
         return;
       }
       
-      // Clear form on success
       setInput('');
       setNotes('');
       setErrors({});
       
-      // Call onSuccess callback if provided
       onSuccess?.();
     } catch (error) {
       setErrors({ general: 'Network error. Please try again.' });
@@ -114,11 +110,11 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
   }, []);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-testid="bp-input-form">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label 
           htmlFor="bp-reading" 
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-text-secondary mb-2"
         >
           Blood Pressure Reading
         </label>
@@ -129,28 +125,26 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
           onChange={handleInputChange}
           placeholder="120/80/72"
           disabled={isLoading}
-          className={`
-            w-full px-3 py-2 border rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            ${errors.input ? 'border-red-500' : 'border-gray-300'}
-          `}
+          className={`input ${errors.input ? 'input-error' : ''}`}
           data-testid="bp-input-field"
         />
         {errors.input && (
-          <p className="mt-1 text-sm text-red-600" data-testid="bp-input-error">
+          <p className="mt-2 text-sm text-health-crisis flex items-center gap-1" data-testid="bp-input-error">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
             {errors.input}
           </p>
         )}
-        <p className="mt-1 text-xs text-gray-500">
-          Format: systolic/diastolic/heartRate (e.g., 120/80/72)
+        <p className="mt-2 text-xs text-text-tertiary">
+          Format: systolic/diastolic/heartRate
         </p>
       </div>
 
       <div>
         <label 
           htmlFor="bp-notes" 
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-text-secondary mb-2"
         >
           Notes (optional)
         </label>
@@ -161,45 +155,33 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
           placeholder="Add any notes about this reading..."
           rows={3}
           disabled={isLoading}
-          className="
-            w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-            resize-vertical
-          "
+          className="input resize-none"
           data-testid="bp-notes-field"
         />
       </div>
 
       {errors.general && (
         <div 
-          className="p-3 bg-red-50 border border-red-200 rounded-md"
+          className="p-3 bg-health-crisis/10 border border-health-crisis/20 rounded-lg"
           data-testid="bp-general-error"
         >
-          <p className="text-sm text-red-600">{errors.general}</p>
+          <p className="text-sm text-health-crisis">{errors.general}</p>
         </div>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="
-          w-full flex items-center justify-center px-4 py-2
-          bg-blue-600 text-white font-medium rounded-md
-          hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-          disabled:bg-blue-400 disabled:cursor-not-allowed
-          transition-colors duration-200
-        "
+        className="btn btn-primary w-full"
         data-testid="bp-submit-button"
       >
         {isLoading ? (
           <>
             <svg 
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" 
+              className="animate-spin h-4 w-4 text-white" 
               xmlns="http://www.w3.org/2000/svg" 
               fill="none" 
               viewBox="0 0 24 24"
-              data-testid="bp-loading-spinner"
             >
               <circle 
                 className="opacity-25" 
@@ -218,9 +200,16 @@ export function BPInputForm({ onSuccess }: BPInputFormProps) {
             Saving...
           </>
         ) : (
-          'Add Reading'
+          <>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Reading
+          </>
         )}
       </button>
     </form>
   );
 }
+
+export default BPInputForm;

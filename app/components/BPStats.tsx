@@ -15,7 +15,6 @@ export interface BPStatsProps {
   records: BPRecord[];
 }
 
-// BP Classification based on AHA guidelines
 type BPCategory = 'normal' | 'elevated' | 'high1' | 'high2' | 'crisis';
 
 function classifyBP(systolic: number, diastolic: number): BPCategory {
@@ -26,18 +25,22 @@ function classifyBP(systolic: number, diastolic: number): BPCategory {
   return 'normal';
 }
 
-function getBPCategoryStyles(category: BPCategory): { bg: string; text: string; label: string } {
+function getBPCategoryConfig(category: BPCategory): { 
+  label: string; 
+  colorClass: string;
+  dotClass: string;
+} {
   switch (category) {
     case 'normal':
-      return { bg: 'bg-green-100', text: 'text-green-800', label: 'Normal' };
+      return { label: 'Normal', colorClass: 'text-health-normal', dotClass: 'bg-health-normal' };
     case 'elevated':
-      return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Elevated' };
+      return { label: 'Elevated', colorClass: 'text-health-elevated', dotClass: 'bg-health-elevated' };
     case 'high1':
-      return { bg: 'bg-orange-100', text: 'text-orange-800', label: 'High Stage 1' };
+      return { label: 'High Stage 1', colorClass: 'text-health-high-1', dotClass: 'bg-health-high-1' };
     case 'high2':
-      return { bg: 'bg-red-100', text: 'text-red-800', label: 'High Stage 2' };
+      return { label: 'High Stage 2', colorClass: 'text-health-high-2', dotClass: 'bg-health-high-2' };
     case 'crisis':
-      return { bg: 'bg-red-200', text: 'text-red-900', label: 'Crisis' };
+      return { label: 'Crisis', colorClass: 'text-health-crisis', dotClass: 'bg-health-crisis' };
   }
 }
 
@@ -64,7 +67,6 @@ export function BPStats({ records }: BPStatsProps) {
       };
     }
 
-    // Calculate averages
     const totalSystolic = records.reduce((sum, r) => sum + r.systolic, 0);
     const totalDiastolic = records.reduce((sum, r) => sum + r.diastolic, 0);
     const totalHeartRate = records.reduce((sum, r) => sum + r.heart_rate, 0);
@@ -73,7 +75,6 @@ export function BPStats({ records }: BPStatsProps) {
     const avgDiastolic = Math.round(totalDiastolic / records.length);
     const avgHeartRate = Math.round(totalHeartRate / records.length);
 
-    // Date range (records are sorted by recorded_at DESC, so reverse for chronological order)
     const sortedByDate = [...records].sort((a, b) => 
       new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime()
     );
@@ -82,10 +83,8 @@ export function BPStats({ records }: BPStatsProps) {
       end: sortedByDate[sortedByDate.length - 1]?.recorded_at || ''
     };
 
-    // Latest reading (first in the array since records are sorted DESC)
     const latest = records[0];
 
-    // Calculate trend (compare recent 3 readings vs older readings)
     let trend: 'improving' | 'stable' | 'worsening' = 'stable';
     
     if (records.length >= 6) {
@@ -116,17 +115,17 @@ export function BPStats({ records }: BPStatsProps) {
     };
   }, [records]);
 
-  // Empty state
   if (records.length === 0) {
     return (
-      <div 
-        className="bg-white rounded-lg shadow p-6"
-        data-testid="bp-stats-empty"
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-        <p className="text-gray-500 text-center py-4">
-          No readings yet. Add your first reading to see statistics.
-        </p>
+      <div className="text-center py-8" data-testid="bp-stats-empty">
+        <div className="w-12 h-12 rounded-full bg-bg-tertiary flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <p className="text-text-secondary">No readings yet</p>
+        <p className="text-caption text-text-tertiary mt-1">Add your first reading to see statistics</p>
       </div>
     );
   }
@@ -134,57 +133,61 @@ export function BPStats({ records }: BPStatsProps) {
   const latestCategory = stats.latest 
     ? classifyBP(stats.latest.systolic, stats.latest.diastolic)
     : 'normal';
-  const latestStyles = getBPCategoryStyles(latestCategory);
+  const latestConfig = getBPCategoryConfig(latestCategory);
 
   const trendConfig = {
-    improving: { icon: '↓', color: 'text-green-600', label: 'Improving', bg: 'bg-green-50' },
-    stable: { icon: '→', color: 'text-gray-600', label: 'Stable', bg: 'bg-gray-50' },
-    worsening: { icon: '↑', color: 'text-red-600', label: 'Worsening', bg: 'bg-red-50' }
+    improving: { 
+      icon: '↓', 
+      colorClass: 'text-health-normal', 
+      label: 'Improving', 
+      bgClass: 'bg-health-normal/10',
+      borderClass: 'border-health-normal/20'
+    },
+    stable: { 
+      icon: '→', 
+      colorClass: 'text-text-secondary', 
+      label: 'Stable', 
+      bgClass: 'bg-bg-tertiary',
+      borderClass: 'border-border-subtle'
+    },
+    worsening: { 
+      icon: '↑', 
+      colorClass: 'text-health-crisis', 
+      label: 'Worsening', 
+      bgClass: 'bg-health-crisis/10',
+      borderClass: 'border-health-crisis/20'
+    }
   };
 
   return (
-    <div 
-      className="bg-white rounded-lg shadow p-6"
-      data-testid="bp-stats"
-    >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-
+    <div data-testid="bp-stats">
       {/* Average readings grid */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div 
-          className="text-center p-3 bg-gray-50 rounded-lg"
-          data-testid="stat-systolic"
-        >
-          <div className="text-2xl font-bold text-gray-900">{stats.avgSystolic}</div>
-          <div className="text-xs text-gray-500 uppercase">Avg Systolic</div>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="text-center p-3 bg-bg-tertiary rounded-xl border border-border-subtle" data-testid="stat-systolic">
+          <div className="font-mono text-2xl font-bold text-text-primary">{stats.avgSystolic}</div>
+          <div className="text-tiny text-text-tertiary uppercase tracking-wider mt-1">Systolic</div>
         </div>
-        <div 
-          className="text-center p-3 bg-gray-50 rounded-lg"
-          data-testid="stat-diastolic"
-        >
-          <div className="text-2xl font-bold text-gray-900">{stats.avgDiastolic}</div>
-          <div className="text-xs text-gray-500 uppercase">Avg Diastolic</div>
+        <div className="text-center p-3 bg-bg-tertiary rounded-xl border border-border-subtle" data-testid="stat-diastolic">
+          <div className="font-mono text-2xl font-bold text-text-primary">{stats.avgDiastolic}</div>
+          <div className="text-tiny text-text-tertiary uppercase tracking-wider mt-1">Diastolic</div>
         </div>
-        <div 
-          className="text-center p-3 bg-gray-50 rounded-lg"
-          data-testid="stat-heart-rate"
-        >
-          <div className="text-2xl font-bold text-gray-900">{stats.avgHeartRate}</div>
-          <div className="text-xs text-gray-500 uppercase">Avg Heart Rate</div>
+        <div className="text-center p-3 bg-bg-tertiary rounded-xl border border-border-subtle" data-testid="stat-heart-rate">
+          <div className="font-mono text-2xl font-bold text-text-primary">{stats.avgHeartRate}</div>
+          <div className="text-tiny text-text-tertiary uppercase tracking-wider mt-1">BPM</div>
         </div>
       </div>
 
       {/* Reading count and date range */}
       <div className="mb-6 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Total Readings:</span>
-          <span className="font-medium text-gray-900" data-testid="stat-count">
+          <span className="text-text-secondary">Total Readings:</span>
+          <span className="font-medium text-text-primary font-mono" data-testid="stat-count">
             {stats.count}
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Date Range:</span>
-          <span className="font-medium text-gray-900" data-testid="stat-date-range">
+          <span className="text-text-secondary">Date Range:</span>
+          <span className="font-medium text-text-primary" data-testid="stat-date-range">
             {formatDate(stats.dateRange.start)} - {formatDate(stats.dateRange.end)}
           </span>
         </div>
@@ -193,31 +196,37 @@ export function BPStats({ records }: BPStatsProps) {
       {/* Latest reading with color-coded status */}
       {stats.latest && (
         <div className="mb-6">
-          <div className="text-xs text-gray-500 uppercase mb-2">Latest Reading</div>
+          <div className="text-tiny text-text-tertiary uppercase tracking-wider mb-2">Latest Reading</div>
           <div 
-            className="flex items-center justify-between p-3 rounded-lg border"
+            className="flex items-center justify-between p-3 rounded-xl bg-bg-tertiary border border-border-subtle"
             data-testid="latest-reading"
           >
             <div className="flex items-center gap-3">
+              <span className={`w-2 h-2 rounded-full ${latestConfig.dotClass}`}></span>
               <span 
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${latestStyles.bg} ${latestStyles.text}`}
+                className={`font-mono text-lg font-semibold ${latestConfig.colorClass}`}
                 data-testid="latest-bp"
               >
                 {stats.latest.systolic}/{stats.latest.diastolic}
               </span>
               {stats.latest.heart_rate > 0 && (
-                <span className="text-sm text-gray-600" data-testid="latest-hr">
+                <span className="text-sm text-text-secondary" data-testid="latest-hr">
                   {stats.latest.heart_rate} bpm
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-500" data-testid="latest-date">
+            <span className="text-xs text-text-tertiary" data-testid="latest-date">
               {formatDate(stats.latest.recorded_at)}
             </span>
           </div>
-          <div className="mt-1 text-xs text-right">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded ${latestStyles.bg} ${latestStyles.text}`}>
-              {latestStyles.label}
+          <div className="mt-2 text-right">
+            <span className={`badge ${
+              latestCategory === 'normal' ? 'badge-normal' :
+              latestCategory === 'elevated' ? 'badge-elevated' :
+              latestCategory === 'high1' ? 'badge-high-1' :
+              latestCategory === 'high2' ? 'badge-high-2' : 'badge-crisis'
+            }`}>
+              {latestConfig.label}
             </span>
           </div>
         </div>
@@ -225,14 +234,14 @@ export function BPStats({ records }: BPStatsProps) {
 
       {/* Trend indicator */}
       <div 
-        className={`flex items-center justify-center gap-2 p-3 rounded-lg ${trendConfig[stats.trend].bg}`}
+        className={`flex items-center justify-center gap-2 p-3 rounded-xl border ${trendConfig[stats.trend].bgClass} ${trendConfig[stats.trend].borderClass}`}
         data-testid="trend-indicator"
       >
-        <span className={`text-lg font-bold ${trendConfig[stats.trend].color}`}>
+        <span className={`text-lg font-bold ${trendConfig[stats.trend].colorClass}`}>
           {trendConfig[stats.trend].icon}
         </span>
-        <span className={`text-sm font-medium ${trendConfig[stats.trend].color}`}>
-          Trend: {trendConfig[stats.trend].label}
+        <span className={`text-sm font-medium ${trendConfig[stats.trend].colorClass}`}>
+          {trendConfig[stats.trend].label}
         </span>
       </div>
     </div>
